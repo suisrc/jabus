@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.suisrc.kratos</groupId>
+    <artifactId>jabus-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>jabus</name>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <javaee.version>8.0</javaee.version>
+        <lombok.version>1.18.16</lombok.version>
+    </properties>
+
+    <modules>
+        <module>core</module>
+        <module>spring</module>
+        <module>nats</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.suisrc.kratos</groupId>
+                <artifactId>jabus-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.suisrc.kratos</groupId>
+                <artifactId>jabus-spring</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.suisrc.kratos</groupId>
+                <artifactId>jabus-nats</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.0.1</version>
+                    <configuration>
+                        <charset>UTF-8</charset>
+                        <docencoding>UTF-8</docencoding>
+                        <outputEncoding>UTF-8</outputEncoding>
+                        <sourceEncoding>UTF-8</sourceEncoding>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <showDeprecation>true</showDeprecation>
+                        <showWarnings>true</showWarnings>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                        <testSource>1.8</testSource>
+                        <testTarget>1.8</testTarget>
+                        <compilerArgs>
+                            <arg>-Xlint:unchecked</arg>
+                        </compilerArgs>
+                        <encoding>UTF-8</encoding>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.0.0-M1</version>
+                    <configuration>
+                        <skip>false</skip>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+    <distributionManagement>
+        <repository>
+            <id>plus-releases</id>
+            <name>Release Repository</name>
+            <url>http://mvn.res.local/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>plus-snapshots</id>
+            <name>Snapshot Repository</name>
+            <url>http://mvn.res.local/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>

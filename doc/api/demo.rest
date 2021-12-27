@@ -1,0 +1,26 @@
+##############################################################################
+@BASE=http://127.0.0.1
+
+
+### 
+GET {{BASE}}/hello
+
+### 
+GET {{BASE}}/test1
+
+### 
+GET {{BASE}}/test2
+
+### 
+GET {{BASE}}/test3
+
+### 
+GET {{BASE}}/test4
+
+### 
+GET {{BASE}}/test5
+
+### 
+GET {{BASE}}/test6
+
+

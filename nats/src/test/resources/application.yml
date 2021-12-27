@@ -1,0 +1,11 @@
+project.name: jmbus
+server.port: 80
+
+spring:
+  application:
+    name: bus   # 应用名称
+    version: v1 # 版本
+
+#===========================================================================================
+# 消息队列
+nats.spring.server: xxx

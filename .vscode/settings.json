@@ -1,0 +1,14 @@
+{
+    "files.exclude": {
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true,
+        "**/.apt_generated_tests": true
+    },
+    "java.configuration.updateBuildConfiguration": "disabled",
+    "sonarlint.connectedMode.project": {
+        "connectionId": "plus",
+        "projectKey": "fwk"
+    }
+}
