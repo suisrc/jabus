@@ -72,6 +72,11 @@ public abstract class AbstractBusManager implements ExternalBusManager {
     return str == null || str.trim().isEmpty();
   }
 
+  //  Spring Expression Language，SpEL
+  protected String spel(String str) {
+    return str;
+  }
+
   /**
    * 
    */
@@ -108,6 +113,8 @@ public abstract class AbstractBusManager implements ExternalBusManager {
       SubscribeType stype1 = subscribe.type() != SubscribeType.NONE ? subscribe.type() : stype0;
       String queue1 = subscribe.queue();
 
+      topic1 = spel(topic1);
+      queue1 = spel(queue1);
       boolean result = false;
       ExternalSub external = new ExternalSub(obj, method);
       switch (stype1) {

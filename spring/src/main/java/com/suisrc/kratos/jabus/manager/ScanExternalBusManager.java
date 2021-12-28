@@ -11,9 +11,16 @@ import com.suisrc.kratos.jabus.ExternalSubscribeHandler;
 import com.suisrc.kratos.jabus.ExternalSubscriber;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.data.spel.EvaluationContextProvider;
+import org.springframework.data.spel.ExtensionAwareEvaluationContextProvider;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ParserContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * 加载所有总线的订阅
@@ -24,11 +31,21 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ScanExternalBusManager extends AbstractBusManager implements ApplicationContextAware {
 
+    private SpelExpressionParser parser = new SpelExpressionParser();
+    private EvaluationContextProvider provider = EvaluationContextProvider.DEFAULT;
+
+    private final Environment environment;
     private ApplicationContext context;
+
+    @Autowired
+    public ScanExternalBusManager(Environment env) {
+        environment = env;
+    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.context = applicationContext;
+        this.provider = new ExtensionAwareEvaluationContextProvider(applicationContext);
         load(); // 加载所有的外部订阅内容
     }
 
@@ -57,4 +74,43 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
 
         return new ArrayList<>(subscribers);
     }
+
+    @Override
+    protected String spel(String str) {
+        if (!str.contains(ParserContext.TEMPLATE_EXPRESSION.getExpressionPrefix())) {
+            return str; // 不包含spel语法
+        }
+        if (str.startsWith("${") && str.endsWith("}")) {
+            return getEnvProperty(str);
+        }
+        Expression expression = parser.parseExpression(str, ParserContext.TEMPLATE_EXPRESSION);
+        return expression.getValue(provider.getEvaluationContext(null), String.class);
+    }
+
+    /**
+     * 通过系统环境变量获取
+     * @param str
+     * @return
+     */
+    protected String getEnvProperty(String str) {
+        String key2 = str.substring(2, str.length() - 1);
+        int idx = key2.indexOf(':');
+        String key;
+        String def;
+        if (idx > 0) {
+            key = key2.substring(0, idx);
+            def = key2.substring(idx+1);
+        } else {
+            key = key2;
+            def = "";
+        }
+        if (key.startsWith("#")) {
+            key = String.format("jabus.spring.topics.%s", key.substring(1));
+        }
+        return environment.getProperty(key, def);
+    }
+// jabus.spring.topics:
+//   task-create-0:
+//     destination: com.suisrc.kratos.msg.task-create-00
+//     group: task-create-00
 }
