@@ -161,9 +161,9 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
         if (handler instanceof ExternalSub) {
             return (ExternalSub)handler;
         } else if (handler instanceof Consumer) {
-            return new ExternalSub(handler, null).setConsumer((Consumer)handler);
+            return new ExternalSub(handler).setConsumer((Consumer)handler);
         }  else if (handler instanceof Function) {
-            return new ExternalSub(handler, null).setFunction((Function)handler);
+            return new ExternalSub(handler).setFunction((Function)handler);
         } else {
             String msg = String.format("no suppert handler type: %s", handler.getClass().getName());
             throw new RuntimeException(msg);

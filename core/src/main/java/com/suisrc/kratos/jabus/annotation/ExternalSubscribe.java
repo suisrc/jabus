@@ -32,6 +32,14 @@ public @interface ExternalSubscribe {
     SubscribeType type() default SubscribeType.ASYNC;
 
     /**
+     * 清空方法， 每次调用后执行
+     * xxx(method, args, result)
+     * 3个参数从左到右可以顺序舍弃
+     * @return
+     */
+    String finallyMethod() default "";
+
+    /**
      * 订阅类型
      * 
      * 同步订阅， 需要有返回值

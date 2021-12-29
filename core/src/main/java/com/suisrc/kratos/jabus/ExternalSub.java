@@ -23,13 +23,19 @@ import net.jodah.typetools.TypeResolver;
 public class ExternalSub {
     private Object owner;
     private Method method;
+    private Method finallyMethod;
     private Consumer consumer;
     private Function function;
     private Class<?> paramCls;
 
-    public ExternalSub(Object owner, Method method) {
+    public ExternalSub(Object owner) {
+        this.owner = owner;
+    }
+
+    public ExternalSub(Object owner, Method method, Method finallyMethod) {
         this.owner = owner;
         this.method = method;
+        this.finallyMethod = finallyMethod;
     }
 
     public ExternalSub setConsumer(Consumer consumer) {
@@ -51,7 +57,7 @@ public class ExternalSub {
         if (this.consumer != null) {
             return this.consumer;
         } else if (this.method != null) {
-            return new ConsumerM(this.owner, this.method);
+            return new ConsumerM(this.owner, this.method, this.finallyMethod);
         } else {
             throw new RuntimeException(String.format("%s: consumer is null", toString()));
         }
@@ -61,7 +67,7 @@ public class ExternalSub {
         if (this.function != null) {
             return this.function;
         } else if (this.method != null) {
-            return new FunctionM(this.owner, this.method);
+            return new FunctionM(this.owner, this.method, this.finallyMethod);
         } else {
             throw new RuntimeException(String.format("%s: function is null", toString()));
         }

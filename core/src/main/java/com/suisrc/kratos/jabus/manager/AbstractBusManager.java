@@ -1,7 +1,9 @@
 package com.suisrc.kratos.jabus.manager;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.logging.Level;
 
@@ -102,22 +104,36 @@ public abstract class AbstractBusManager implements ExternalBusManager {
       }
     }
 
-    ExternalBus delegate = getExternalBus();
-    for (Method method : obj.getClass().getMethods()) {
+    Method[] methods = obj.getClass().getMethods();
+    Map<String, Method> methodMap = new HashMap<>();
+    for (Method method : methods) {
+      methodMap.put(method.getName(), method);
+    }
 
+    ExternalBus delegate = getExternalBus();
+    for (Method method : methods) {
       ExternalSubscribe subscribe = method.getAnnotation(ExternalSubscribe.class);
       if (subscribe == null) {
         continue;
+      }
+      Method finallyMethod = null; // 清理回调方法
+      if (!subscribe.finallyMethod().isEmpty()) {
+        finallyMethod = methodMap.get(subscribe.finallyMethod());
+        if (finallyMethod == null) {
+          throw new RuntimeException(String.format("external subscribe method error, clear method not found: %s::%s", //
+            obj.getClass().getSimpleName(), method.getName()));
+        }
       }
 
       String topic1 = !isEmpty(subscribe.topic()) ? subscribe.topic() : topic0;
       SubscribeType stype1 = subscribe.type() != SubscribeType.NONE ? subscribe.type() : stype0;
       String queue1 = subscribe.queue();
+      //if ("${##".equals(queue1)) // 增加特殊内容
 
-      topic1 = spel(topic1);
       queue1 = spel(queue1);
+      topic1 = spel(topic1);
       boolean result = false;
-      ExternalSub external = new ExternalSub(obj, method);
+      ExternalSub external = new ExternalSub(obj, method, finallyMethod);
       switch (stype1) {
         case SYNC:
           result = isEmpty(queue1) ? //
@@ -165,7 +181,7 @@ public abstract class AbstractBusManager implements ExternalBusManager {
       if (subscribe != null) {
 
         String topic1 = isEmpty(subscribe.topic()) ? subscribe.topic() : topic0;
-        ExternalSub external = new ExternalSub(obj, method);
+        ExternalSub external = new ExternalSub(obj, method, null);
         if (delegate.unsubscribe(topic1, external)) {
           count++;
         }
