@@ -9,6 +9,7 @@ import java.util.Set;
 import com.suisrc.kratos.jabus.ExternalBus;
 import com.suisrc.kratos.jabus.ExternalSubscribeHandler;
 import com.suisrc.kratos.jabus.ExternalSubscriber;
+import com.suisrc.kratos.jabus.annotation.ExternalSubscribe;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +84,9 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
 
     @Override
     public String spel(String str) {
+        if (str.endsWith("?}")) {
+            str = str.substring(0, str.length() -2) + ExternalSubscribe.DESK;
+        }
         if (str.startsWith("${") && str.endsWith("}")) {
             return getEnvProperty(str);
         }

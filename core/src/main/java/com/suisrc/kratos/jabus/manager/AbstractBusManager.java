@@ -9,7 +9,6 @@ import java.util.logging.Level;
 
 import com.suisrc.kratos.jabus.ExternalBus;
 import com.suisrc.kratos.jabus.ExternalSub;
-import com.suisrc.kratos.jabus.ExternalSubscriber;
 import com.suisrc.kratos.jabus.annotation.ExternalSubscribe;
 import com.suisrc.kratos.jabus.annotation.ExternalSubscribe.SubscribeType;
 
@@ -46,6 +45,13 @@ public abstract class AbstractBusManager implements ExternalBusManager {
   @Override
   public String spel(String str) {
     return str;
+  }
+
+  public String spel(Method method, String str) {
+    if (str.startsWith("${##")) { // 绑定方法名
+      str = "${#" + method.getName() + str.substring(4);
+    }
+    return spel(str);
   }
 
   /**
@@ -90,33 +96,26 @@ public abstract class AbstractBusManager implements ExternalBusManager {
     }
     int count = 0;
 
-    String topic0 = "default";
-    SubscribeType stype0 = SubscribeType.ASYNC;
-
-    if (obj instanceof ExternalSubscriber) {
-      ExternalSubscriber subscribe = (ExternalSubscriber) obj;
-
-      if (!isEmpty(subscribe.getTopic())) {
-        topic0 = subscribe.getTopic();
-      }
-      if (subscribe.getSubscribeType() != SubscribeType.NONE) {
-        stype0 = subscribe.getSubscribeType();
-      }
-    }
-
     Method[] methods = obj.getClass().getMethods();
     Map<String, Method> methodMap = new HashMap<>();
     for (Method method : methods) {
       methodMap.put(method.getName(), method);
     }
 
-    ExternalBus delegate = getExternalBus();
     for (Method method : methods) {
-      ExternalSubscribe subscribe = method.getAnnotation(ExternalSubscribe.class);
-      if (subscribe == null) {
-        continue;
+      if (subscribe(methodMap, obj, method)) {
+        count++;
       }
-      Method finallyMethod = null; // 清理回调方法
+    }
+    return count;
+  }
+
+  protected boolean subscribe(Map<String, Method> methodMap, Object obj, Method method) {
+    ExternalSubscribe subscribe = method.getAnnotation(ExternalSubscribe.class);
+    if (subscribe == null) {
+      return false;
+    }
+    Method finallyMethod = null; // 清理回调方法
       if (!subscribe.finallyMethod().isEmpty()) {
         finallyMethod = methodMap.get(subscribe.finallyMethod());
         if (finallyMethod == null) {
@@ -125,15 +124,25 @@ public abstract class AbstractBusManager implements ExternalBusManager {
         }
       }
 
-      String topic1 = !isEmpty(subscribe.topic()) ? subscribe.topic() : topic0;
-      SubscribeType stype1 = subscribe.type() != SubscribeType.NONE ? subscribe.type() : stype0;
-      String queue1 = subscribe.queue();
-      //if ("${##".equals(queue1)) // 增加特殊内容
+      String topic0 = subscribe.topic();
+      String queue0 = subscribe.queue();
+      if (queue0.startsWith("${#$") && queue0.endsWith("}")) {
+        // ${#$destination:group}, topic中destination替换成group， 特殊处理
+        String[] keys = queue0.substring(4, queue0.length() - 1).split(":", 2);
+        if (keys.length != 2) {
+          throw new RuntimeException(String.format("external subscribe method error, queue config err: %s::%s", //
+            obj.getClass().getSimpleName(), method.getName()));
+        }
+        queue0 = topic0.replace(keys[0], keys[1]);
+      }
 
-      queue1 = spel(queue1);
-      topic1 = spel(topic1);
+      String topic1 = spel(method, topic0);
+      String queue1 = spel(method, queue0);
+      SubscribeType stype1 = subscribe.type();
+
       boolean result = false;
       ExternalSub external = new ExternalSub(obj, method, finallyMethod);
+      ExternalBus delegate = getExternalBus();
       switch (stype1) {
         case SYNC:
           result = isEmpty(queue1) ? //
@@ -148,13 +157,10 @@ public abstract class AbstractBusManager implements ExternalBusManager {
         default:
           break;
       }
-      if (result) {
-        count++;
-        log.log(Level.INFO, "已经加载外部订阅器：主题[{0}], 方法[{1}::{2}]", //
-          new Object[]{topic1, method.getDeclaringClass().getName(),  method.getName()});
-      }
-    }
-    return count;
+      log.log(Level.INFO, "加载外部订阅器{4}：主题[{0}], 方法[{2}::{3}], 队列[{1}]", new Object[]{ //
+        topic1, queue1, obj.getClass().getName(), method.getName(), result ? "成功" : "失败"});
+
+      return result;
   }
 
   /**
@@ -167,20 +173,14 @@ public abstract class AbstractBusManager implements ExternalBusManager {
     }
     int count = 0;
 
-    String topic0 = "default";
-    if (obj instanceof ExternalSubscriber) {
-
-      ExternalSubscriber subscribe = (ExternalSubscriber) obj;
-      topic0 = isEmpty(subscribe.getTopic()) ? subscribe.getTopic() : topic0;
-    }
-
     ExternalBus delegate = getExternalBus();
     for (Method method : obj.getClass().getMethods()) {
 
       ExternalSubscribe subscribe = method.getAnnotation(ExternalSubscribe.class);
       if (subscribe != null) {
 
-        String topic1 = isEmpty(subscribe.topic()) ? subscribe.topic() : topic0;
+        String topic0 = subscribe.topic();
+        String topic1 = spel(method, topic0);
         ExternalSub external = new ExternalSub(obj, method, null);
         if (delegate.unsubscribe(topic1, external)) {
           count++;

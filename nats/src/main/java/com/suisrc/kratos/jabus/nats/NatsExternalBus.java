@@ -57,10 +57,11 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
     }
 
     @Override
-    public boolean unsubscribe(String topic, Object handler) {
+    public boolean unsubscribe(String topic0, Object handler) {
         if (handler == null) {
             return false;
         }
+        String topic = spel(topic0);
         ExternalSub esub = getExternalSub(handler);
         Subscription sub = subs.get(getSubKey(topic, esub));
         if (sub == null || !sub.isActive()) {
@@ -80,10 +81,10 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
     // ====================================================================================================
 
     @Override
-    public <T> Optional<T> request(String topic, Object message, Class<T> clazz, Duration timeout) {
-        String topic1 = spel(topic);
+    public <T> Optional<T> request(String topic0, Object message, Class<T> clazz, Duration timeout) {
+        String topic = spel(topic0);
         try {
-            Message msg = connection.request(topic1, parseMessage(message), timeout);
+            Message msg = connection.request(topic, parseMessage(message), timeout);
             return Optional.ofNullable(parseObject(msg.getData(), clazz));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt(); // 请求超时
@@ -92,9 +93,9 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
     }
 
     @Override
-    public void publish(String topic, Object args) {
-        String topic1 = spel(topic);
-        connection.publish(topic1, parseMessage(args));
+    public void publish(String topic0, Object args) {
+        String topic = spel(topic0);
+        connection.publish(topic, parseMessage(args));
     }
 
     // ====================================================================================================
@@ -176,7 +177,10 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
 
     // ====================================================================================================
 
-    protected boolean subscribe(String topic, Object handler, Function<ExternalSub, MessageHandler> mhdl, Function<MessageHandler, Subscription> msub) {
+    protected boolean subscribe(String topic0, Object handler, Function<ExternalSub, MessageHandler> mhdl, //
+        Function<MessageHandler, Subscription> msub) {
+
+        String topic = spel(topic0);
         ExternalSub esub = getExternalSub(handler);
         String key = getSubKey(topic, esub);
         Subscription sub = subs.get(key);
