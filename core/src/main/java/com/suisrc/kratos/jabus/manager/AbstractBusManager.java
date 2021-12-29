@@ -40,10 +40,16 @@ public abstract class AbstractBusManager implements ExternalBusManager {
    */
   public abstract List<Object> getSubscribers();
 
+  //  Spring Expression Language，SpEL
+  @Override
+  public String spel(String str) {
+    return str;
+  }
+
   /**
    * 
    */
-  // @Override
+  @Override
   public void load() {
     if (isLoaded) {
       throw new IllegalArgumentException(getClass() + " 已经执行加载load，不可重置执行");
@@ -72,15 +78,10 @@ public abstract class AbstractBusManager implements ExternalBusManager {
     return str == null || str.trim().isEmpty();
   }
 
-  //  Spring Expression Language，SpEL
-  protected String spel(String str) {
-    return str;
-  }
-
   /**
    * 
    */
-  // @Override
+  @Override
   public int subscribe(Object obj) {
     if (obj == null) {
       return 0;
@@ -143,7 +144,7 @@ public abstract class AbstractBusManager implements ExternalBusManager {
   /**
    * 
    */
-  // @Override
+  @Override
   public int unsubscribe(Object obj) {
     if (obj == null) {
       return 0;

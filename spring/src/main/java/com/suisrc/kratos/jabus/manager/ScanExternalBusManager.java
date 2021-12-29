@@ -35,6 +35,8 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
     private EvaluationContextProvider provider = EvaluationContextProvider.DEFAULT;
 
     private final Environment environment;
+
+    private ExternalBus delegate;
     private ApplicationContext context;
 
     @Autowired
@@ -46,6 +48,10 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.context = applicationContext;
         this.provider = new ExtensionAwareEvaluationContextProvider(applicationContext);
+        this.delegate = context.getBean(ExternalBus.class);
+        if (this.delegate instanceof ExternalBusManagerAware) {
+            ((ExternalBusManagerAware)this.delegate).setExternalBusManager(this); // 监听器捆绑
+        }
         load(); // 加载所有的外部订阅内容
     }
 
@@ -54,7 +60,7 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
      */
     @Override
     public ExternalBus getExternalBus() {
-        return context.getBean(ExternalBus.class);
+        return delegate;
     }
 
     /**
@@ -76,7 +82,7 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
     }
 
     @Override
-    protected String spel(String str) {
+    public String spel(String str) {
         if (!str.contains(ParserContext.TEMPLATE_EXPRESSION.getExpressionPrefix())) {
             return str; // 不包含spel语法
         }

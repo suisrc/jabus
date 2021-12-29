@@ -10,6 +10,8 @@ import java.util.function.Function;
 import com.alibaba.fastjson.JSON;
 import com.suisrc.kratos.jabus.ExternalBus;
 import com.suisrc.kratos.jabus.ExternalSub;
+import com.suisrc.kratos.jabus.manager.ExternalBusManager;
+import com.suisrc.kratos.jabus.manager.ExternalBusManagerAware;
 
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
@@ -18,23 +20,36 @@ import io.nats.client.MessageHandler;
 import io.nats.client.Subscription;
 
 // @Component
-public class NatsExternalBus implements ExternalBus {
+public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
 
     // 外部订阅连接器
     protected Connection connection;
     // protected Dispatcher dispatcher;
 
+    protected ExternalBusManager manager;
+
     // 订阅缓存
     protected Map<String, Subscription> subs = new ConcurrentHashMap<>();
+
+
+    public NatsExternalBus(Connection conn) {
+        this.connection = conn;
+        // this.dispatcher = conn.createDispatcher();
+    }
 
     // 获取所有的订阅信息
     public Map<String, Subscription> getSubscriptions() {
         return subs;
     }
 
-    public NatsExternalBus(Connection conn) {
-        this.connection = conn;
-        // this.dispatcher = conn.createDispatcher();
+    @Override
+    public void setExternalBusManager(ExternalBusManager manager) {
+        this.manager = manager;
+    }
+
+    @Override
+    public ExternalBusManager getManager() {
+        return manager;
     }
 
     public Dispatcher getDispatcher() {
@@ -55,12 +70,20 @@ public class NatsExternalBus implements ExternalBus {
         connection.closeDispatcher(sub.getDispatcher());
         return true;
     }
+
+    public String spel(String str) {
+        if (this.manager == null) {
+            return str;
+        }
+        return this.manager.spel(str);
+    }
     // ====================================================================================================
 
     @Override
     public <T> Optional<T> request(String topic, Object message, Class<T> clazz, Duration timeout) {
+        String topic1 = spel(topic);
         try {
-            Message msg = connection.request(topic, parseMessage(message), timeout);
+            Message msg = connection.request(topic1, parseMessage(message), timeout);
             return Optional.ofNullable(parseObject(msg.getData(), clazz));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt(); // 请求超时
@@ -70,7 +93,8 @@ public class NatsExternalBus implements ExternalBus {
 
     @Override
     public void publish(String topic, Object args) {
-        connection.publish(topic, parseMessage(args));
+        String topic1 = spel(topic);
+        connection.publish(topic1, parseMessage(args));
     }
 
     // ====================================================================================================

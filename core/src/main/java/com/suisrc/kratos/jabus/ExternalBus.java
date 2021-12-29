@@ -3,7 +3,15 @@ package com.suisrc.kratos.jabus;
 import java.time.Duration;
 import java.util.Optional;
 
+import com.suisrc.kratos.jabus.manager.ExternalBusManager;
+
 public interface ExternalBus {
+
+    /**
+     * 获取管理器
+     * @return
+     */
+    ExternalBusManager getManager();
 
     /**
      * 请求-回复模型

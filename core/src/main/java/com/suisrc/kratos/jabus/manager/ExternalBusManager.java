@@ -1,6 +1,13 @@
 package com.suisrc.kratos.jabus.manager;
 
 public interface ExternalBusManager {
+    
+    /**
+     * 字符内容转换
+     * @param str
+     * @return
+     */
+    String spel(String str);
 
     /**
      * 加载订阅
