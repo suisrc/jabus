@@ -83,11 +83,11 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
 
     @Override
     public String spel(String str) {
-        if (!str.contains(ParserContext.TEMPLATE_EXPRESSION.getExpressionPrefix())) {
-            return str; // 不包含spel语法
-        }
         if (str.startsWith("${") && str.endsWith("}")) {
             return getEnvProperty(str);
+        }
+        if (!str.contains(ParserContext.TEMPLATE_EXPRESSION.getExpressionPrefix())) {
+            return str; // 不包含spel语法
         }
         Expression expression = parser.parseExpression(str, ParserContext.TEMPLATE_EXPRESSION);
         return expression.getValue(provider.getEvaluationContext(null), String.class);
