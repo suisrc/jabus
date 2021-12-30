@@ -15,4 +15,5 @@ public interface FunctionX<T, R> extends Function<T, R> {
     }
 
     R apply2(T t) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException;
+
 }

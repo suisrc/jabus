@@ -8,9 +8,9 @@ import java.util.concurrent.Flow.Subscriber;
 import java.util.logging.Level;
 
 import com.suisrc.kratos.jabus.ExternalBus;
-import com.suisrc.kratos.jabus.ExternalSub;
 import com.suisrc.kratos.jabus.annotation.ExternalSubscribe;
 import com.suisrc.kratos.jabus.annotation.ExternalSubscribe.SubscribeType;
+import com.suisrc.kratos.jabus.core.ExternalSub;
 
 import lombok.extern.java.Log;
 
@@ -137,12 +137,16 @@ public abstract class AbstractBusManager implements ExternalBusManager {
       }
 
       String topic1 = spel(method, topic0);
+      if (isEmpty(topic1)) {
+        throw new RuntimeException(String.format("external subscribe method error, topic is empty: %s::%s", //
+          obj.getClass().getSimpleName(), method.getName()));
+      }
       String queue1 = spel(method, queue0);
       SubscribeType stype1 = subscribe.type();
 
       boolean result = false;
-      ExternalSub external = new ExternalSub(obj, method, finallyMethod);
       ExternalBus delegate = getExternalBus();
+      ExternalSub external = new ExternalSub(obj, method, finallyMethod);
       switch (stype1) {
         case SYNC:
           result = isEmpty(queue1) ? //

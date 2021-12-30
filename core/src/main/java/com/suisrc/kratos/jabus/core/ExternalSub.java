@@ -1,13 +1,10 @@
-package com.suisrc.kratos.jabus;
+package com.suisrc.kratos.jabus.core;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import com.suisrc.kratos.jabus.common.ConsumerM;
-import com.suisrc.kratos.jabus.common.FunctionM;
+import com.suisrc.kratos.jabus.ExternalBus;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,6 +18,7 @@ import net.jodah.typetools.TypeResolver;
 @Getter @Setter
 @SuppressWarnings({ "rawtypes" })
 public class ExternalSub {
+    private ExternalBus bus;
     private Object owner;
     private Method method;
     private Method finallyMethod;
@@ -53,21 +51,26 @@ public class ExternalSub {
         return this;
     }
 
+    public ExternalSub setBus(ExternalBus bus) {
+        this.bus = bus;
+        return this;
+    }
+
     public Consumer getConsumer() {
-        if (this.consumer != null) {
-            return this.consumer;
-        } else if (this.method != null) {
-            return new ConsumerM(this.owner, this.method, this.finallyMethod);
+        if (consumer != null) {
+            return consumer;
+        } else if (method != null) {
+            return Runnable.build(this);
         } else {
             throw new RuntimeException(String.format("%s: consumer is null", toString()));
         }
     }
 
     public Function getFunction() {
-        if (this.function != null) {
-            return this.function;
-        } else if (this.method != null) {
-            return new FunctionM(this.owner, this.method, this.finallyMethod);
+        if (function != null) {
+            return function;
+        } else if (method != null) {
+            return Runnable.build(this);
         } else {
             throw new RuntimeException(String.format("%s: function is null", toString()));
         }
@@ -91,21 +94,6 @@ public class ExternalSub {
             return TypeResolver.resolveRawArguments(Function.class, function.getClass())[0];
         }
         throw new RuntimeException(String.format("%s: no handler", toString()));
-    }
-
-    @Deprecated // 被TypeResolver直接取代
-    protected Class<?> getParamClassBy(Class<?> clazz, Type stype) {
-        if (clazz == null || clazz == Object.class) {
-            throw new RuntimeException(String.format("%s: no %s impl", toString(), stype.toString()));
-        }
-        for (Type type : clazz.getGenericInterfaces()) {
-            if (type instanceof ParameterizedType && ((ParameterizedType) type).getRawType() == stype) {
-                return (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
-            } else if (type == stype) { // lambda
-                return TypeResolver.resolveRawArguments(stype, clazz)[0];
-            }
-        }
-        return getParamClassBy(clazz.getSuperclass(), stype);
     }
 
     @Override

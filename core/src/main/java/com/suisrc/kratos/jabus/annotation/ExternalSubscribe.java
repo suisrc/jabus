@@ -55,7 +55,20 @@ public @interface ExternalSubscribe {
     String queue() default "${#$?:.group}";
 
     /**
+     * 转发， 配置转发模式， 必须有返回值
+     * 同topic
+     * 
+     * 转发， 只有在方法具有返回值， 同时type=ASYNC有效
+     * 
+     * @return
+     */
+    String forward() default "${##-out-0?}";
+
+    /**
      * 订阅类型
+     * 
+     * SYNC,  必须有返回值， 返回值为请求-响应模型应答内容
+     * ASYNC, 如果有返回值， forward为转发的总线， 如果转发总线为空，不进行转发
      * @return
      */
     SubscribeType type() default SubscribeType.ASYNC;

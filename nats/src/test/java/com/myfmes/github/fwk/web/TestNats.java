@@ -1,8 +1,8 @@
 package com.myfmes.github.fwk.web;
 
-import com.suisrc.kratos.jabus.ExternalSubscriber;
 import com.suisrc.kratos.jabus.annotation.ExternalSubscribe;
 import com.suisrc.kratos.jabus.annotation.ExternalSubscribe.SubscribeType;
+import com.suisrc.kratos.jabus.core.ExternalSubscriber;
 
 import org.springframework.stereotype.Component;
 

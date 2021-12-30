@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import com.suisrc.kratos.jabus.ExternalBus;
-import com.suisrc.kratos.jabus.ExternalSub;
+import com.suisrc.kratos.jabus.core.ExternalSub;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

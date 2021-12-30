@@ -1,4 +1,4 @@
-package com.suisrc.kratos.jabus;
+package com.suisrc.kratos.jabus.core;
 
 import java.util.List;
 

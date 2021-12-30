@@ -7,9 +7,9 @@ import java.util.Map;
 import java.util.Set;
 
 import com.suisrc.kratos.jabus.ExternalBus;
-import com.suisrc.kratos.jabus.ExternalSubscribeHandler;
-import com.suisrc.kratos.jabus.ExternalSubscriber;
 import com.suisrc.kratos.jabus.annotation.ExternalSubscribe;
+import com.suisrc.kratos.jabus.core.ExternalSubscribeHandler;
+import com.suisrc.kratos.jabus.core.ExternalSubscriber;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;

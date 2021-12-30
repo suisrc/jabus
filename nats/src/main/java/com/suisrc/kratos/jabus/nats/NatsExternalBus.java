@@ -9,7 +9,7 @@ import java.util.function.Function;
 
 import com.alibaba.fastjson.JSON;
 import com.suisrc.kratos.jabus.ExternalBus;
-import com.suisrc.kratos.jabus.ExternalSub;
+import com.suisrc.kratos.jabus.core.ExternalSub;
 import com.suisrc.kratos.jabus.manager.ExternalBusManager;
 import com.suisrc.kratos.jabus.manager.ExternalBusManagerAware;
 
@@ -160,11 +160,11 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
     @SuppressWarnings({"rawtypes"})
     protected ExternalSub getExternalSub(Object handler) {
         if (handler instanceof ExternalSub) {
-            return (ExternalSub)handler;
+            return ((ExternalSub)handler).setBus(this);
         } else if (handler instanceof Consumer) {
-            return new ExternalSub(handler).setConsumer((Consumer)handler);
+            return new ExternalSub(handler).setBus(this).setConsumer((Consumer)handler);
         }  else if (handler instanceof Function) {
-            return new ExternalSub(handler).setFunction((Function)handler);
+            return new ExternalSub(handler).setBus(this).setFunction((Function)handler);
         } else {
             String msg = String.format("no suppert handler type: %s", handler.getClass().getName());
             throw new RuntimeException(msg);
