@@ -50,7 +50,7 @@ public class Runnable implements FunctionX, ConsumerX {
                 throw new RuntimeException(String.format("external subscribe method error, forward is empty: %s::%s", //
                     method.getDeclaringClass().getSimpleName(), method.getName()));
             }
-            log.log(Level.INFO, "订阅外部转发：主题[{1}], 方法[{1}::{2}]", new Object[]{
+            log.log(Level.INFO, "加载外部订阅器转发：主题[{0}], 方法[{1}::{2}]", new Object[]{
                 forward, object.getClass().getName(), method.getName()
             });
             execute = execute.after(new ForwardTopic(sub.getBus(), forward));
