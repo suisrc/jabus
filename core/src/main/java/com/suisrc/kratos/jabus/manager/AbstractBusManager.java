@@ -136,30 +136,31 @@ public abstract class AbstractBusManager implements ExternalBusManager {
         queue0 = topic0.replace(keys[0], keys[1]);
       }
 
-      String topic1 = spel(method, topic0);
-      if (isEmpty(topic1)) {
-        throw new RuntimeException(String.format("external subscribe method error, topic is empty: %s::%s", //
-          obj.getClass().getSimpleName(), method.getName()));
-      }
-      String queue1 = spel(method, queue0);
-      SubscribeType stype1 = subscribe.type();
-
       boolean result = false;
-      ExternalBus delegate = getExternalBus();
-      ExternalSub external = new ExternalSub(obj, method, finallyMethod);
-      switch (stype1) {
-        case SYNC:
-          result = isEmpty(queue1) ? //
-            delegate.subscribe(topic1, external) : //
-            delegate.subscribe(topic1, queue1, external);
-          break;
-        case ASYNC:
-          result = isEmpty(queue1) ? // 
-            delegate.subscribeAsync(topic1, external) : //
-            delegate.subscribeAsync(topic1, queue1, external);
-          break;
-        default:
-          break;
+      String topic1 = spel(method, topic0);
+      String queue1 = "";
+      if (isEmpty(topic1)) {
+        topic1 = "未配置";
+      } else {
+        queue1 = spel(method, queue0);
+        SubscribeType stype1 = subscribe.type();
+  
+        ExternalBus delegate = getExternalBus();
+        ExternalSub external = new ExternalSub(obj, method, finallyMethod);
+        switch (stype1) {
+          case SYNC:
+            result = isEmpty(queue1) ? //
+              delegate.subscribe(topic1, external) : //
+              delegate.subscribe(topic1, queue1, external);
+            break;
+          case ASYNC:
+            result = isEmpty(queue1) ? // 
+              delegate.subscribeAsync(topic1, external) : //
+              delegate.subscribeAsync(topic1, queue1, external);
+            break;
+          default:
+            break;
+        }
       }
       log.log(Level.INFO, "加载外部订阅器{4}：主题[{0}], 方法[{2}::{3}], 队列[{1}]", new Object[]{ //
         topic1, queue1, obj.getClass().getName(), method.getName(), result ? "成功" : "失败"});

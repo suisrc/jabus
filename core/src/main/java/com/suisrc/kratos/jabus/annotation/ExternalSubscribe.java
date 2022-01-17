@@ -48,7 +48,7 @@ public @interface ExternalSubscribe {
      * 消息队列, 默认: MethodName-in-0.group
      * 同topic
      * 
-     * ${#$#:group}, topic中#替换成.group， 注解专用
+     * ${#$?:Y}, topic中?替换成.group， 注解专用
      * 
      * @return
      */

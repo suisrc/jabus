@@ -85,7 +85,7 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
         String topic = spel(topic0);
         try {
             Message msg = connection.request(topic, parseMessage(message), timeout);
-            return Optional.ofNullable(parseObject(msg.getData(), clazz));
+            return Optional.ofNullable(msg).map(Message::getData).map(v -> parseObject(v, clazz));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt(); // 请求超时
             return Optional.empty();
