@@ -13,7 +13,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface ExternalSubscribe {
     // ?} 替换的内容
-    String DESK = ".destination}";
+    String DESN = ".destination}";
+    String SUFK = "?}"; // '?}' = '.destination'
+    String PERK = "$>"; // '$>xxxx' = '${#xxxx?}' 主题专用
 
     /**
      * 订阅主题, 默认: MethodName-in-0.destination
@@ -32,13 +34,17 @@ public @interface ExternalSubscribe {
      * 5. ${#[method]-in-0.destination}
      * 6. ${jabus.spring.topic.[method]-in-0.destination}
      * 7. #{@environment.getProptery('jabus.spring.topic.[method]-in-0.destination')}
+     * 8. $>xxxx                  手动专用 = ${#xxxx?} @since 1.1.1
      * 
      * 推荐使用2，4，7；
      * 第7种，spel语法， 可以自定义专用方法处理
      * 第2种，再订阅方法上使用， 可以协同queue关联处理，以规约简化相应的配置
      * 第4种，主要使用再消息推送上，request和publish方法， 以简化相应的操作
+     * 第8种，新增一种补偿方式， 简化配置, 注意， 只支持配置总线主题
      * 
      * 注意：在手动订阅场景下，第2种方式无法使用，同时queue无法处理‘?}’结尾的内容
+     *       注解订阅时不要使用第8种方式，会影响消息队列默认分组不可用，需要单独指定
+     * 
      * 
      * @return
      */
@@ -46,8 +52,9 @@ public @interface ExternalSubscribe {
 
     /**
      * 消息队列, 默认: MethodName-in-0.group
-     * 同topic
+     * 同topic, ${#xxx.group}
      * 
+     * ${#$, 标识替换，取topic种的内容， 将x:y种的x替换y
      * ${#$?:Y}, topic中?替换成.group， 注解专用
      * 
      * @return

@@ -14,6 +14,13 @@ public interface ExternalBus {
     ExternalBusManager getManager();
 
     /**
+     * 获取主题的真实名称
+     * @param name
+     * @return
+     */
+    String getTopicName(String name);
+
+    /**
      * 请求-回复模型
      * 发送消息后，等待回执
      * @param topic

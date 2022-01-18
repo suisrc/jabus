@@ -35,6 +35,7 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
     private SpelExpressionParser parser = new SpelExpressionParser();
     private EvaluationContextProvider provider = EvaluationContextProvider.DEFAULT;
 
+    private String desn;
     private final Environment environment;
 
     private ExternalBus delegate;
@@ -42,7 +43,8 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
 
     @Autowired
     public ScanExternalBusManager(Environment env) {
-        environment = env;
+        environment = env; // jabus.spring.topics.%s
+        desn = env.getProperty("jabus.spring.destination", ExternalSubscribe.DESN);
     }
 
     @Override
@@ -84,8 +86,11 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
 
     @Override
     public String spel(String str) {
-        if (str.endsWith("?}")) {
-            str = str.substring(0, str.length() -2) + ExternalSubscribe.DESK;
+        if (str.startsWith(ExternalSubscribe.PERK)) {
+            str = "${#" + str.substring(ExternalSubscribe.PERK.length()) + desn;
+        }
+        if (str.endsWith(ExternalSubscribe.SUFK)) {
+            str = str.substring(0, str.length() - ExternalSubscribe.SUFK.length()) + desn;
         }
         if (str.startsWith("${") && str.endsWith("}")) {
             return getEnvProperty(str);

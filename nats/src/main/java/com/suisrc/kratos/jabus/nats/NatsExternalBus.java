@@ -24,7 +24,7 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
 
     // 外部订阅连接器
     protected Connection connection;
-    // protected Dispatcher dispatcher;
+    // protected Dispatcher dispatcher
 
     protected ExternalBusManager manager;
 
@@ -34,7 +34,7 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
 
     public NatsExternalBus(Connection conn) {
         this.connection = conn;
-        // this.dispatcher = conn.createDispatcher();
+        // this.dispatcher = conn.createDispatcher()
     }
 
     // 获取所有的订阅信息
@@ -56,33 +56,37 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
         return connection.createDispatcher();
     }
 
+    //======================================================================================
+
+    @Override
+    public String getTopicName(String name) {
+        if (this.manager == null) {
+            return name;
+        }
+        return this.manager.spel(name);
+    }
+
     @Override
     public boolean unsubscribe(String topic0, Object handler) {
         if (handler == null) {
             return false;
         }
-        String topic = spel(topic0);
+        String topic = getTopicName(topic0);
         ExternalSub esub = getExternalSub(handler);
         Subscription sub = subs.get(getSubKey(topic, esub));
         if (sub == null || !sub.isActive()) {
             return false;
         }
-        // sub.getDispatcher().unsubscribe(sub);
+        // sub.getDispatcher().unsubscribe(sub)
         connection.closeDispatcher(sub.getDispatcher());
         return true;
     }
 
-    public String spel(String str) {
-        if (this.manager == null) {
-            return str;
-        }
-        return this.manager.spel(str);
-    }
     // ====================================================================================================
 
     @Override
     public <T> Optional<T> request(String topic0, Object message, Class<T> clazz, Duration timeout) {
-        String topic = spel(topic0);
+        String topic = getTopicName(topic0);
         try {
             Message msg = connection.request(topic, parseMessage(message), timeout);
             return Optional.ofNullable(msg).map(Message::getData).map(v -> parseObject(v, clazz));
@@ -94,7 +98,7 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
 
     @Override
     public void publish(String topic0, Object args) {
-        String topic = spel(topic0);
+        String topic = getTopicName(topic0);
         connection.publish(topic, parseMessage(args));
     }
 
@@ -157,7 +161,7 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
         }
     }
 
-    @SuppressWarnings({"rawtypes"})
+    @SuppressWarnings({"all"})
     protected ExternalSub getExternalSub(Object handler) {
         if (handler instanceof ExternalSub) {
             return ((ExternalSub)handler).setBus(this);
@@ -180,7 +184,7 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
     protected boolean subscribe(String topic0, Object handler, Function<ExternalSub, MessageHandler> mhdl, //
         Function<MessageHandler, Subscription> msub) {
 
-        String topic = spel(topic0);
+        String topic = getTopicName(topic0);
         ExternalSub esub = getExternalSub(handler);
         String key = getSubKey(topic, esub);
         Subscription sub = subs.get(key);

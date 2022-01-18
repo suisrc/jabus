@@ -48,9 +48,11 @@ public abstract class AbstractBusManager implements ExternalBusManager {
   }
 
   public String spel(Method method, String str) {
-    if (str.startsWith("${##")) { // 绑定方法名
+    if (str.startsWith("$>#")) {
+      str = "$>" + method.getName() + str.substring(3);
+    } else if (str.startsWith("${##")) {
       str = "${#" + method.getName() + str.substring(4);
-    }
+    } 
     return spel(str);
   }
 
