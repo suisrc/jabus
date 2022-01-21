@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.suisrc.kratos.jabus.ExternalBus;
-import com.suisrc.kratos.jabus.annotation.ExternalSubscribe;
+import com.suisrc.kratos.jabus.annotation.ESConstant;
 import com.suisrc.kratos.jabus.core.ExternalSubscribeHandler;
 import com.suisrc.kratos.jabus.core.ExternalSubscriber;
 
@@ -31,6 +31,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  */
 @Configuration
 public class ScanExternalBusManager extends AbstractBusManager implements ApplicationContextAware {
+    private static final String PREFIX = "jabus.spring";
 
     private SpelExpressionParser parser = new SpelExpressionParser();
     private EvaluationContextProvider provider = EvaluationContextProvider.DEFAULT;
@@ -44,7 +45,7 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
     @Autowired
     public ScanExternalBusManager(Environment env) {
         environment = env; // jabus.spring.topics.%s
-        desn = env.getProperty("jabus.spring.destination", ExternalSubscribe.DESN);
+        desn = env.getProperty(PREFIX + ".destination", ESConstant.DESN);
     }
 
     @Override
@@ -84,16 +85,17 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
         return new ArrayList<>(subscribers);
     }
 
+    //=========================================================================================================
+
     @Override
-    public String spel(String str) {
-        if (str.startsWith(ExternalSubscribe.PERK)) {
-            str = "${#" + str.substring(ExternalSubscribe.PERK.length()) + desn;
-        }
-        if (str.endsWith(ExternalSubscribe.SUFK)) {
-            str = str.substring(0, str.length() - ExternalSubscribe.SUFK.length()) + desn;
-        }
-        if (str.startsWith("${") && str.endsWith("}")) {
-            return getEnvProperty(str);
+    public String spel(String method, String topic, String str) {
+        if (str.startsWith("$")) {
+            str = getSpelByMethod(method, str);         // method
+            str = getSpelByMarker(method, topic, str);  // marker
+    
+            if (str.startsWith("${") && str.endsWith("}")) {
+                return getEnvProperty(str);
+            }
         }
         if (!str.contains(ParserContext.TEMPLATE_EXPRESSION.getExpressionPrefix())) {
             return str; // 不包含spel语法
@@ -101,6 +103,39 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
         Expression expression = parser.parseExpression(str, ParserContext.TEMPLATE_EXPRESSION);
         return expression.getValue(provider.getEvaluationContext(null), String.class);
     }
+
+    private String getSpelByMarker(String method, String topic, String str) {
+        if (str.endsWith(ESConstant.SUFK)) { // '?}'
+            str = str.substring(0, str.length() - ESConstant.SUFK.length()) + desn;
+            // '${#xxxx?}' => '${#xxxx.destination}'
+        } else if (str.equals(ESConstant.PK_GG) && topic.startsWith(ESConstant.PK_IN0)) { // '$$' & '$<'
+            String topic0 = getSpelByMethod(method, topic); // 获取主题编码
+            str = String.format("${#%s-in-0.group}", topic0.substring(ESConstant.PK_IN0.length()));
+            // '$$' => '${#xxxx-in-0.group}'
+        } else if (str.startsWith(ESConstant.PK_IN0)) { // '$<'
+            str = String.format("${#%s-in-0%s", str.substring(ESConstant.PK_IN0.length()), desn);
+            // '$<xxxx' => '${#xxxx-in-0.destination}'
+        } else if (str.startsWith(ESConstant.PK_OUT0)) { // '$>'
+            str = String.format("${#%s-out-0%s", str.substring(ESConstant.PK_OUT0.length()), desn);
+            // '$>xxxx' => '${#xxxx-out-0.destination}'
+        }
+        return str;
+    }
+
+    private String getSpelByMethod(String method, String str) {
+        if (str.equals(ESConstant.PK_GG)) {
+            return str;
+        }
+        for (String tag : new String[]{"${##", ESConstant.PK_IN0 + "#", ESConstant.PK_OUT0 + "#"}) {
+            if (str.startsWith(tag)) {
+                str = tag.substring(0, tag.length() - 1) + method + str.substring(tag.length());
+                break;
+            } 
+        }
+        return str;
+    }
+
+    //=========================================================================================================
 
     /**
      * 通过系统环境变量获取
@@ -120,7 +155,7 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
             def = "";
         }
         if (key.startsWith("#")) {
-            key = String.format("jabus.spring.topics.%s", key.substring(1));
+            key = String.format("%s.topics.%s", PREFIX, key.substring(1));
         }
         return environment.getProperty(key, def);
     }

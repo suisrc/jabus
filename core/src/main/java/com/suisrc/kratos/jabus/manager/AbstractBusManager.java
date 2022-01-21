@@ -41,19 +41,13 @@ public abstract class AbstractBusManager implements ExternalBusManager {
    */
   public abstract List<Object> getSubscribers();
 
-  //  Spring Expression Language，SpEL
+  // Spring Expression Language，SpEL
   @Override
-  public String spel(String str) {
-    return str;
-  }
-
-  public String spel(Method method, String str) {
-    if (str.startsWith("$>#")) {
-      str = "$>" + method.getName() + str.substring(3);
-    } else if (str.startsWith("${##")) {
-      str = "${#" + method.getName() + str.substring(4);
+  public String spel(String method, String topic, String str) {
+    if (str.startsWith("${##")) {
+      str = "${#" + method + str.substring(4);
     } 
-    return spel(str);
+    return str;
   }
 
   /**
@@ -139,12 +133,12 @@ public abstract class AbstractBusManager implements ExternalBusManager {
       }
 
       boolean result = false;
-      String topic1 = spel(method, topic0);
+      String topic1 = spel(method.getName(), topic0, topic0);
       String queue1 = "";
       if (isEmpty(topic1)) {
         topic1 = "未配置";
       } else {
-        queue1 = spel(method, queue0);
+        queue1 = spel(method.getName(), topic0, queue0);
         SubscribeType stype1 = subscribe.type();
   
         ExternalBus delegate = getExternalBus();
@@ -187,7 +181,7 @@ public abstract class AbstractBusManager implements ExternalBusManager {
       if (subscribe != null) {
 
         String topic0 = subscribe.topic();
-        String topic1 = spel(method, topic0);
+        String topic1 = spel(method.getName(), topic0, topic0);
         ExternalSub external = new ExternalSub(obj, method, null);
         if (delegate.unsubscribe(topic1, external)) {
           count++;

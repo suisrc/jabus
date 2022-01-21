@@ -12,10 +12,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface ExternalSubscribe {
-    // ?} 替换的内容
-    String DESN = ".destination}";
-    String SUFK = "?}"; // '?}' = '.destination'
-    String PERK = "$>"; // '$>xxxx' = '${#xxxx?}' 主题专用
 
     /**
      * 订阅主题, 默认: MethodName-in-0.destination
@@ -34,7 +30,9 @@ public @interface ExternalSubscribe {
      * 5. ${#[method]-in-0.destination}
      * 6. ${jabus.spring.topic.[method]-in-0.destination}
      * 7. #{@environment.getProptery('jabus.spring.topic.[method]-in-0.destination')}
-     * 8. $>xxxx                  手动专用 = ${#xxxx?} @since 1.1.1
+     * 8. $>xxxx                  手动专用 = ${#xxx-out-0?} @since 1.1.1
+     * 9. $<xxxx                  手动专用 = ${#xxx-in-0?}  @since 1.1.1
+     *    $$   特殊配置， 只能和$<联合使用 = ${#xxx-out-0.group}, 改配置只能在queue中生效
      * 
      * 推荐使用2，4，7；
      * 第7种，spel语法， 可以自定义专用方法处理
@@ -48,7 +46,7 @@ public @interface ExternalSubscribe {
      * 
      * @return
      */
-    String topic() default "${##-in-0?}";
+    String topic() default "$<#"; // "${##-in-0?}"
 
     /**
      * 消息队列, 默认: MethodName-in-0.group
@@ -59,7 +57,7 @@ public @interface ExternalSubscribe {
      * 
      * @return
      */
-    String queue() default "${#$?:.group}";
+    String queue() default "$$"; // "${#$?:.group}"
 
     /**
      * 转发， 配置转发模式， 必须有返回值
@@ -69,7 +67,7 @@ public @interface ExternalSubscribe {
      * 
      * @return
      */
-    String forward() default "${##-out-0?}";
+    String forward() default "$>#"; // "${##-out-0?}"
 
     /**
      * 订阅类型

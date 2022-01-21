@@ -7,7 +7,7 @@ public interface ExternalBusManager {
      * @param str
      * @return
      */
-    String spel(String str);
+    String spel(String method, String topic, String str);
 
     /**
      * 加载订阅

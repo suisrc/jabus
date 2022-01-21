@@ -40,12 +40,7 @@ public class Runnable implements FunctionX, ConsumerX {
         if (subscribe != null && subscribe.type() == SubscribeType.ASYNC && // 
             !subscribe.forward().isEmpty() && method.getReturnType() != void.class) {
 
-            String forward = subscribe.forward();
-            if (forward.startsWith("${##")) { // 绑定方法名
-                forward = "${#" + method.getName() + forward.substring(4);
-            } // @see AbstractBusManager::spel(Method method, String str)
-
-            forward = sub.getBus().getManager().spel(forward);
+            String forward = sub.getBus().getManager().spel(method.getName(), subscribe.topic(), subscribe.forward());
             if (forward.isEmpty()) {
                 throw new RuntimeException(String.format("external subscribe method error, forward is empty: %s::%s", //
                     method.getDeclaringClass().getSimpleName(), method.getName()));

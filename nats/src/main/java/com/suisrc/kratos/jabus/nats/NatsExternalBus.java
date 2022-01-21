@@ -63,7 +63,7 @@ public class NatsExternalBus implements ExternalBus, ExternalBusManagerAware {
         if (this.manager == null) {
             return name;
         }
-        return this.manager.spel(name);
+        return this.manager.spel("", name, name);
     }
 
     @Override
