@@ -31,7 +31,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  */
 @Configuration
 public class ScanExternalBusManager extends AbstractBusManager implements ApplicationContextAware {
-    private static final String PREFIX = "jabus.spring";
+    public static final String PREFIX = "jabus.spring";
 
     private SpelExpressionParser parser = new SpelExpressionParser();
     private EvaluationContextProvider provider = EvaluationContextProvider.DEFAULT;
