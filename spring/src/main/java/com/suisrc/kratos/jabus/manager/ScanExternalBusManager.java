@@ -38,6 +38,7 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
 
     private String desn;
     private final Environment environment;
+    private final boolean disable;
 
     private ExternalBus delegate;
     private ApplicationContext context;
@@ -46,10 +47,15 @@ public class ScanExternalBusManager extends AbstractBusManager implements Applic
     public ScanExternalBusManager(Environment env) {
         environment = env; // jabus.spring.topics.%s
         desn = env.getProperty(PREFIX + ".destination", ESConstant.DESN);
+        disable = env.getProperty(PREFIX + ".disable", Boolean.class, false);
+
     }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        if (disable) {
+            return; // 禁用状态， 不执行初始化操作
+        }
         this.context = applicationContext;
         this.provider = new ExtensionAwareEvaluationContextProvider(applicationContext);
         this.delegate = context.getBean(ExternalBus.class);
